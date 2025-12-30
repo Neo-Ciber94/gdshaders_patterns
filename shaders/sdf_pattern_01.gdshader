@@ -9,7 +9,7 @@ uniform vec4 c2: source_color = vec4(0.0, 0.0, 0.0, 1.0);
 group_uniforms Shape;
 uniform int shape_type: hint_enum("Circle", "Triangle", "Pentagon", "Hexagon", "Hexagram") = 0;
 uniform vec2 offset = vec2(10.0, 0.0);
-uniform float radius: hint_range(0.0, 5.0, 0.01)  = 1.0;
+uniform float radius: hint_range(0.0, 5.0, 0.01)  = 0.9;
 uniform float speed: hint_range(0.0, 10.0, 0.01) = 3.0;
 uniform float amount: hint_range(0.0, 100.0, 0.1) = 10;
 uniform float radius_variation: hint_range(0.0, 10.0, 0.01) = 0.25;
@@ -96,13 +96,15 @@ void fragment() {
 	float y_offset = uv.y * offset.y;
 	float wav_offset = x_offset + y_offset;
 	float wave = (sin(TIME * speed + wav_offset) + 1.0) * radius_variation;
-	float r = wave * radius; // wave + radius
+	float r = wave * radius;
+	//float r = wave + radius; 
 
-	float dist = draw_shape(fact_uv, r);
+	float x = r;
+	float dist = draw_shape(fact_uv, x);
 	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
 	//float c = step(dist, 0.0);
 	
-	if (dist > 0.0) {
+	if (dist >= 0.0) {
 		color = c1;
 	} else {
 		color = c2;

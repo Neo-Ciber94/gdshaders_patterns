@@ -1,17 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://dmj5hb7v3evsu"]
+[gd_scene load_steps=5 format=3 uid="uid://dmj5hb7v3evsu"]
 
-[ext_resource type="Shader" uid="uid://d0ifr4xwjrvrf" path="res://shaders/sdf_pattern_01.gdshader" id="1_oabld"]
+[ext_resource type="Shader" uid="uid://bsns4rsyku5f6" path="res://shaders/noise_01.gdshader" id="1_oabld"]
+
+[sub_resource type="Gradient" id="Gradient_oabld"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_i7s6n"]
+gradient = SubResource("Gradient_oabld")
+fill_from = Vector2(0.86752135, 0.8119658)
+fill_to = Vector2(1, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i7s6n"]
 shader = ExtResource("1_oabld")
-shader_parameter/c1 = Color(0.65882355, 0.5176471, 0.9529412, 1)
-shader_parameter/c2 = Color(0, 0, 0, 1)
-shader_parameter/shape_type = 0
-shader_parameter/offset = Vector2(10, 0)
-shader_parameter/radius = 1.0
-shader_parameter/speed = 3.0
-shader_parameter/amount = 10.0
-shader_parameter/radius_variation = 0.25
+shader_parameter/color_1 = Color(0, 0, 0, 1)
+shader_parameter/color_2 = Color(0.65882355, 0.5176471, 0.9529412, 1)
+shader_parameter/intensity_mask = SubResource("GradientTexture2D_i7s6n")
+shader_parameter/tiles = 10.000000149012
+shader_parameter/radius = 0.76999998278896
+shader_parameter/speed = 1.999999955296
 
 [node name="Background" type="ColorRect"]
 material = SubResource("ShaderMaterial_i7s6n")

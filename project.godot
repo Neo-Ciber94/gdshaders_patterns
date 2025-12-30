@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="pop_art_experiments"
+run/main_scene="uid://dmj5hb7v3evsu"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
 
