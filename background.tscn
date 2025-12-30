@@ -6,7 +6,6 @@
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_i7s6n"]
 gradient = SubResource("Gradient_oabld")
-fill_from = Vector2(0.86752135, 0.8119658)
 fill_to = Vector2(1, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i7s6n"]
