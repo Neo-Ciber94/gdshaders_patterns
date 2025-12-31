@@ -14,11 +14,6 @@ float sdCircle(vec2 p, float r){
     return length(p) - r;
 }
 
-// Hash function to generate pseudo-random values per cell
-float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-}
-
 void fragment() {
     vec2 uv = UV;
 
@@ -42,7 +37,6 @@ void fragment() {
 	float intensity = texture(intensity_mask, mask_uv).r;
 
     float t = TIME * speed;
-	//float offset = uv.x + uv.y;
 	float offset = uv.x + uv.y;
 
     float pulse = ((sin(t + offset) + 1.0) * 0.5);
@@ -58,12 +52,5 @@ void fragment() {
 		target_color = color_2;
 	}
 
-	//float mask_value = texture(intensity_mask, UV).r;
-//
-	//if (mask_value >= 0.6) {
-		//target_color = color_2;
-	//}
-
 	COLOR = target_color;
-
 }
