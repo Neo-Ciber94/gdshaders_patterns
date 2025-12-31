@@ -9,12 +9,20 @@ uniform sampler2D intensity_texture;
 uniform vec2 intenstity_falloff = vec2(0.5, 0.0);
 
 group_uniforms Movement;
+uniform float rotation_degrees: hint_range(0.0, 360, 0.1) = 0.0;
 uniform float tiles: hint_range(0, 100, 1) = 10;
 uniform float speed: hint_range(0.0, 10.0, 0.1) = 2.0;
 uniform vec2 offset = vec2(1.0, 0.0);
 
 float sdCircle(vec2 p, float r){
     return length(p) - r;
+}
+
+mat2 rotate2d(float _angle){
+	return mat2(
+		vec2(cos(_angle),-sin(_angle)),
+		vec2(sin(_angle),cos(_angle))
+	);
 }
 
 void fragment() {
@@ -26,6 +34,7 @@ void fragment() {
 
     uv -= vec2(0.5);
     uv.x *= aspect_ratio;
+	uv *= rotate2d(radians(rotation_degrees));
 
     vec2 grid = uv * tiles;
 	vec2 uv_offset = offset * TIME * speed;
