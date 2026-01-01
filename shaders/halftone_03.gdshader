@@ -1,18 +1,26 @@
 shader_type canvas_item;
 
 group_uniforms Colors;
-uniform vec4 color_1: source_color = vec4(1.0, 1.0, 1.0, 1.0);
-uniform vec4 color_2: source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform vec4 bg_color: source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 fg_color: source_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 group_uniforms Intensity;
-uniform sampler2D intensity_texture;
-uniform vec2 intenstity_falloff = vec2(0.5, 0.0);
+uniform sampler2D intensity_texture: repeat_enable;
+uniform vec2 intenstity_falloff = vec2(0.0, 0.0);
 
 group_uniforms Movement;
 uniform float rotation_degrees: hint_range(0.0, 360, 0.1) = 0.0;
 uniform float tiles: hint_range(0, 100, 1) = 10;
 uniform float speed: hint_range(0.0, 10.0, 0.1) = 2.0;
 uniform vec2 offset = vec2(1.0, 0.0);
+
+group_uniforms Wave;
+uniform float wave_intensity: hint_range(0.0, 1.0, 0.1) = 0.0;
+uniform float wave_speed: hint_range(0.0, 10.0, 0.01) = 2.0;
+uniform float wave_freq: hint_range(0.0, 10.0, 0.01) = 0.5;
+
+group_uniforms Antialising;
+uniform float antialising_amount: hint_range(0.0, 100.0, 0.1) = 20.0;
 
 float sdCircle(vec2 p, float r){
     return length(p) - r;
@@ -28,9 +36,8 @@ mat2 rotate2d(float _angle){
 void fragment() {
     vec2 uv = UV;
 
-    float delta_x = fwidth(UV.x);
-    float delta_y = fwidth(UV.y);
-    float aspect_ratio = delta_y / delta_x;
+	vec2 delta = fwidth(uv);
+    float aspect_ratio = delta.y / delta.x;
 
     uv -= vec2(0.5);
     uv.x *= aspect_ratio;
@@ -39,20 +46,24 @@ void fragment() {
     vec2 grid = uv * tiles;
 	vec2 uv_offset = offset * TIME * speed;
 	vec2 fract_uv = fract(grid + uv_offset) - 0.5;
-
-	const float wave_speed = 2.0;
-	const float wave_freq = 0.5;
+	vec2 cell = floor(grid);
+  	vec2 cell_uv = (cell + 0.5) / tiles;
 
 	float t = TIME * wave_speed;
 	float wave = (sin(t * wave_freq) + 1.0) * 0.5;
+	float w = wave_intensity <= 0.0 ? 1.0: wave * wave_intensity;
 
 	float intensity = texture(intensity_texture, UV).r;
 	float intensity_offset = (UV.x * intenstity_falloff.x) + (UV.y * intenstity_falloff.y);
-	float r = intensity + intensity_offset * intensity;
+	float r = intensity + intensity_offset * intensity * w;
 
 	float dist = sdCircle(fract_uv, r);
-	float d = step(dist, 0.0);
-	vec3 c = vec3(d);
+	//float d = step(dist, 0.0);
+	//vec3 c = vec3(d);
 
-	COLOR = d <= 0.0 ? color_1: color_2;
+	// Antialising
+	float aa = fwidth(dist);
+	float d = smoothstep(-antialising_amount, antialising_amount, dist / delta.y);
+	vec4 color = mix(fg_color, bg_color, d);
+	COLOR = color;
 }

@@ -1,9 +1,12 @@
 shader_type canvas_item;
 
+uniform vec4 bg_color: source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform vec4 fg_color: source_color = vec4(1.0);
+
 uniform float tiles: hint_range(0.0, 500.0, 0.1) = 20.0;
 uniform float radius: hint_range(0.0, 1.0, 0.01) = 0.25;
 
-uniform sampler2D intensity_texture: repeat_enable;
+uniform sampler2D intensity_texture;
 uniform float intensity_edge: hint_range(0.0, 1.0, 0.01) = 0.5;
 uniform float intensity_blend: hint_range(0.0, 1.0, 0.01) = 0.25;
 
@@ -11,14 +14,6 @@ uniform vec2 speed = vec2(0.05);
 
 float sdCircle(vec2 p, float r){
     return length(p) - r;
-}
-
-vec2 polar_coordinates(vec2 uv, vec2 center, float zoom, float repeat)
-{
-	vec2 dir = uv - center;
-	float r = length(dir) * 2.0;
-	float angle = atan(dir.y, dir.x) * 1.0/(3.1416 * 2.0);
-	return mod(vec2(r * zoom, angle * repeat), 1.0);
 }
 
 void fragment() {	
@@ -29,29 +24,23 @@ void fragment() {
 	uv -= vec2(0.5);
 	uv.x *= aspect_ratio; 
 
-	vec2 offset = vec2(TIME * speed);
-	// uv += offset;
-	//uv += vec2(length((UV - vec2(0.5))), 0.0) * TIME * 0.001;
-	//uv *= polar_coordinates(uv + vec2(TIME * 0.25), vec2(0.5), 0.5, 3.0);
+	vec2 circ_uv = vec2(length(UV), 0.0);
 
 	vec2 grid = uv * tiles;
     vec2 cell = floor(grid);
 	vec2 fract_uv = fract(grid) - vec2(0.5);
 	
   	vec2 cell_uv = (cell + 0.5) / tiles;
-    float intensity = texture(intensity_texture, cell_uv).r;
-
-	float i = smoothstep(
-		intensity_edge - intensity_blend, 
-		intensity_edge + intensity_blend, 
-		intensity
-	); 
+    float intensity = texture(intensity_texture, UV).r;
 	
-	float r = radius * i * (UV.x * intensity);
+	float r = radius * intensity;
 	float dist = sdCircle(fract_uv, r);
 	
-	float d = step(dist, 0.0);
-	COLOR = vec4(vec3(d), 1.0);
+	const float aa_amount = 10.0;
+	float aa = fwidth(dist);
+	float d = smoothstep(-aa_amount, aa_amount, dist / delta.y);
+	vec4 color = mix(fg_color, bg_color, d);	
+	COLOR = color;
 }
 
 
