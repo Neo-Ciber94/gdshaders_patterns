@@ -17,9 +17,7 @@ float sdCircle(vec2 p, float r){
 }
 
 float random (in vec2 st) {
-    return fract(sin(dot(st.xy,
-                         vec2(12.9898,78.233)))
-                 * 43758.5453123);
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 // 2D Noise based on Morgan McGuire @morgan3d
@@ -44,6 +42,74 @@ float noise (in vec2 st) {
     return mix(a, b, u.x) +
             (c - a)* u.y * (1.0 - u.x) +
             (d - b) * u.x * u.y;
+}
+
+
+vec2 randomGradient(vec2 p) {
+  p = p + 0.5;
+  float x = dot(p, vec2(123.4, 234.5));
+  float y = dot(p, vec2(234.5, 345.6));
+  vec2 gradient = vec2(x, y);
+  gradient = sin(gradient);
+  gradient = gradient * 43758.5453;
+
+  // part 4.5 - update noise function with time
+  gradient = sin(gradient + TIME);
+  return gradient;
+
+  //gradient = sin(gradient);
+  //return gradient;
+}
+
+vec2 cubic(vec2 p) {
+  return p * p * (3.0 - p * 2.0);
+}
+
+vec2 quintic(vec2 p) {
+  return p * p * p * (10.0 + p * (-15.0 + p * 6.0));
+}
+
+float pnoise(in vec2 uv) {
+  vec2 gridId = floor(uv);
+  vec2 gridUv = fract(uv);
+
+  // part 2.1 - start by finding the coords of grid corners
+  vec2 bl = gridId + vec2(0.0, 0.0);
+  vec2 br = gridId + vec2(1.0, 0.0);
+  vec2 tl = gridId + vec2(0.0, 1.0);
+  vec2 tr = gridId + vec2(1.0, 1.0);
+
+  // part 2.2 - find random gradient for each grid corner
+  vec2 gradBl = randomGradient(bl);
+  vec2 gradBr = randomGradient(br);
+  vec2 gradTl = randomGradient(tl);
+  vec2 gradTr = randomGradient(tr);
+
+
+  // part 3.2 - find distance from current pixel to each grid corner
+  vec2 distFromPixelToBl = gridUv - vec2(0.0, 0.0);
+  vec2 distFromPixelToBr = gridUv - vec2(1.0, 0.0);
+  vec2 distFromPixelToTl = gridUv - vec2(0.0, 1.0);
+  vec2 distFromPixelToTr = gridUv - vec2(1.0, 1.0);
+
+  // part 4.1 - calculate the dot products of gradients + distances
+  float dotBl = dot(gradBl, distFromPixelToBl);
+  float dotBr = dot(gradBr, distFromPixelToBr);
+  float dotTl = dot(gradTl, distFromPixelToTl);
+  float dotTr = dot(gradTr, distFromPixelToTr);
+
+  // part 4.4 - smooth out gridUvs
+  // gridUv = smoothstep(0.0, 1.0, gridUv);
+   //gridUv = cubic(gridUv);
+  gridUv = quintic(gridUv);
+
+  // part 4.2 - perform linear interpolation between 4 dot products
+  float b = mix(dotBl, dotBr, gridUv.x);
+  float t = mix(dotTl, dotTr, gridUv.x);
+  float perlin = mix(b, t, gridUv.y);
+
+  // part 4.3 - display perlin noise
+  return perlin;
 }
 
 const int NUM_OCTAVES = 8;
@@ -121,13 +187,12 @@ void fragment() {
 	vec2 fract_uv = fract(grid) - vec2(0.5);
 	
   	vec2 cell_uv = (cell + 0.5) / tiles;
+	const float edge2 = 2.0;
+	cell_uv = smoothstep(vec2(-edge2), vec2(edge2), cell_uv);
 	
-    float t = TIME * 1.25;
-    vec2 base = UV * 4.0;              // base sampling scale
-   	vec2 w = warp_field(base, t);      // warped offset
-    float intensity = fbm2(base + w);  // final ripple field ✨
+    float intensity = pnoise(cell_uv * 4.0);
 	
-	float r = radius * intensity;
+	float r = radius * 0.5 + radius * intensity;
 	float dist = sdCircle(fract_uv, r);
 	
 	const float aa_amount = 10.0;
@@ -135,6 +200,7 @@ void fragment() {
 	float d = smoothstep(-aa_amount, aa_amount, dist / delta.y);
 	vec4 color = mix(fg_color, bg_color, d);	
 	COLOR = color;
+	//COLOR = vec4(cell_uv.x, cell_uv.y, 0.0, 1.0);
 }
 
 
